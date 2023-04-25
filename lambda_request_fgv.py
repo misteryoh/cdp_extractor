@@ -3,8 +3,12 @@ import boto3
 
 def lambda_handler(event, context):
 
-    # event: dict
-    # context: dict
+    """Upload a file to an S3 bucket
+
+    :param event: Receive a dict of events
+    :param context: Output of the execution
+    :return: True if file was uploaded, else False
+    """
 
     if event is None:
 
@@ -15,6 +19,11 @@ def lambda_handler(event, context):
         for org_id in fgv_orgs:
             org_url = url + str(org_id["_id"])
             org_detail = api_requests.lambda_api_call(org_url)
+
+            # Upload the file
+            # Create a session using the specified configuration file
+            session = boto3.Session(profile_name='default')
+            s3_client = session.client('s3')
 
             print(org_detail["organization"]["name"])
     else:
