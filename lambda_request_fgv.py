@@ -1,5 +1,6 @@
-from src import api_requests
+from src import lambda_libs as libs
 import boto3
+import json
 
 def lambda_handler(event, context):
 
@@ -10,32 +11,43 @@ def lambda_handler(event, context):
     :return: True if file was uploaded, else False
     """
 
+    bucket_name = 'uati-case-fgv'
+    folder_name = 'emissions-orgs'
+    object_name = 'emissions-orgs-'
+    url = 'https://sistema-registropublicodeemissoes.fgv.br/public/organizations/'
+
     if event is None:
 
-        url = 'https://sistema-registropublicodeemissoes.fgv.br/public/organizations/'
-
-        fgv_orgs = api_requests.lambda_api_call(url)
+        fgv_orgs = libs.lambda_api_call(url)
 
         for org_id in fgv_orgs:
             org_url = url + str(org_id["_id"])
-            org_detail = api_requests.lambda_api_call(org_url)
+            org_detail = libs.lambda_api_call(org_url)
 
-            # Upload the file
-            # Create a session using the specified configuration file
-            session = boto3.Session(profile_name='default')
-            s3_client = session.client('s3')
-
-            print(org_detail["organization"]["name"])
+            # Upload the response
+            upload_s3 = libs.upload_s3_object(
+                json.dumps(org_detail["organization"]), 
+                bucket_name, 
+                folder_name, 
+                object_name + str(org_id["_id"])
+            )
+            
     else:
 
         for id in event:
             org_url = url + str(id)
-            org_detail = api_requests.lambda_api_call(org_url)
+            org_detail = libs.lambda_api_call(org_url)
 
-            print(org_detail["organization"]["name"])        
+            # Upload the response
+            upload_s3 = libs.upload_s3_object(
+                json.dumps(org_detail["organization"]), 
+                bucket_name, 
+                folder_name, 
+                object_name + str(id).zfill(6) + '.json'
+            )
 
 orgs = [1569, 990]
-test = lambda_handler(event=None, context=None)
+test = lambda_handler(event=orgs, context=None)
 
 ##
 ## TODO

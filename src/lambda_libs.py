@@ -26,27 +26,24 @@ def lambda_api_call(path):
     if response.status_code == 200:
         return response.json()
 
-def upload_file(request_json, bucket_name, folder_name, object_name):
-    """Upload a file to an S3 bucket
+def upload_s3_object(json_string, bucket_name, folder_name, object_name):
+    """Upload an object to an S3 bucket
 
-    :param request_json: Pandas Dataframe to upload
+    :param json_string: JSON to upload
     :param folder: Bucket to upload to
     :param bucket_name: Folder to upload to
     :param object_name: S3 object name
-    :return: True if file was uploaded, else False
+    :return: True if object was uploaded, else False
     """
 
-    # Upload the file
     # Create a session using the specified configuration file
     session = boto3.Session(profile_name='default')
     s3_client = session.client('s3')
 
     try:
-        # response = s3_client.upload_file(file_name, bucket, object_name)
-
-        # Convert the response to JSON and upload to S3
+        # Put object into the S3 bucker
         s3_object = s3_client.put_object(
-            Bucket=bucket_name, Key=f"{folder_name}/{object_name}", Body=csv_buffer.encode())
+            Bucket=bucket_name, Key=f"{folder_name}/{object_name}", Body=json_string)
     except ClientError as e:
         logging.error(e)
         return False
