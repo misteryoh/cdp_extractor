@@ -44,7 +44,9 @@ def upload_s3_object(json_string, bucket_name, folder_name, object_name):
         # Put object into the S3 bucker
         s3_object = s3_client.put_object(
             Bucket=bucket_name, Key=f"{folder_name}/{object_name}", Body=json_string)
+
+        return s3_object
+        
     except ClientError as e:
         logging.error(e)
         return False
-    return True
