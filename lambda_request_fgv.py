@@ -10,6 +10,7 @@ def lambda_handler(event, context):
     :param context: Output of the execution
     :return: True if file was uploaded, else False
     """
+
     response = fgv_orgs(event)
 
 def fgv_orgs(event):
@@ -99,4 +100,3 @@ test = lambda_handler(event=payload, context=None)
 ## |C| 1.0. Call the API endpoint "/organizations" to GET the JSON dict with all the companies IDs
 ## |C| 2.0. Call the API endpoint "/organizations/[_id]" to GET the JSON dict with all the companie details
 ## |C| 2.1. Get the JSON response and save in a S3 bucket
-## |C| 2.1. Append the 
