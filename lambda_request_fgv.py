@@ -4,94 +4,93 @@ import json
 
 def lambda_handler(event, context):
 
-    """Upload a file to an S3 bucket
-
-    :param event: Receive a dict of events
+    """ Main function to receive the payload and process the API calls
+    
+    :param event: Receive a dict payload
     :param context: Output of the execution
-    :return: True if file was uploaded, else False
+    :return: dict with status and message
     """
-
-    response = fgv_orgs(event)
-
-def fgv_orgs(event):
 
     url = 'https://sistema-registropublicodeemissoes.fgv.br/'
     endpoint = '/public/organizations/'
 
+    # Check if payload contains pre-defined 'orgs'
     if event['orgs'] is None:
 
-        fgv_orgs = libs.lambda_api_call(url + endpoint)
+        fgv_orgs = libs.lambda_api_call(url + endpoint) # Receive API response
 
-        for org_id in fgv_orgs:
-            org_url = url + endpoint + str(org_id['_id'])
-            org_detail = libs.lambda_api_call(org_url)
+        org_ids = [org_id['_id'] for org_id in fgv_orgs] # Iterate through dict to make orgs_id list
 
-            # Upload the response
-            try:
-                upload_org = libs.upload_s3_object(
-                    json_string=json.dumps(org_detail['organization']), 
-                    bucket_name=event['bucket_name'], 
-                    folder_name=event['org_folder'],
-                    object_name=event['org_object'] + str(org_id['_id']).zfill(6) + '.json'
-                )
-
-                upload_inv = libs.upload_s3_object(
-                    json_string=json.dumps(org_detail['inventories']), 
-                    bucket_name=event['bucket_name'], 
-                    folder_name=event['inv_folder'],
-                    object_name=event['inv_object'] + str(org_id['_id']).zfill(6) + '.json'
-                )
-            except:
-                return {
-                    'status_code': 400,
-                    'body' : 'Erro ao realizar upload do arquivo'
-                }
+        # Calls process_org to request Orgs details and upload to s3 bucket
+        response = process_orgs(
+            org_ids, 
+            url, 
+            endpoint, 
+            event['bucket_name'], 
+            event['folder_name'], 
+            event['object_name']
+        )
         
-        return {
-            'status_code': 200,
-            'body' : 'Upload realizado com sucesso'
-        }
-    else:
+        return response
 
-        for id in event['orgs']:
-            org_url = url + endpoint + str(id)
-            org_detail = libs.lambda_api_call(org_url)
+    else: # If payload have pre-defined 'orgs'
 
-            # Upload the response
-            try:
-                upload_org = libs.upload_s3_object(
-                    json_string=json.dumps(org_detail['organization']), 
-                    bucket_name=event['bucket_name'], 
-                    folder_name=event['org_folder'], 
-                    object_name=event['org_object'] + str(id).zfill(6) + '.json'
-                )
+        # Calls process_org to request Orgs details and upload to s3 bucket
+        response = process_orgs(
+            event['orgs'], 
+            url, 
+            endpoint, 
+            event['bucket_name'], 
+            event['folder_name'], 
+            event['object_name']
+        )
+        
+        return response
 
-                for inv in org_detail['inventories']:
-                    upload_inv = libs.upload_s3_object(
-                        json_string=json.dumps(inv), 
-                        bucket_name=event['bucket_name'], 
-                        folder_name=event['inv_folder'],
-                        object_name=event['inv_object'] + str(id).zfill(6) + '-' + str([inv['_id']]).zfill(6) + '.json'
-                    )
-                
-            except:
-                return {
-                    'status_code': 400,
-                    'body' : 'Erro ao realizar upload do arquivo'
-                }
-        return {
-            'status_code': 200,
-            'body' : 'Upload realizado com sucesso'
-        }
+def process_orgs(org_ids, url, endpoint, bucket_name, folder_name, object_name):
+        
+    """Process the API calls by Orgs IDs and upload the results to an S3 bucket
+
+    :param orgs_ids: List of organizations IDs to iterate
+    :param url: API path
+    :param endpoint: API endpoint
+    :param bucket_name: Name of the S3 bucket
+    :param folder_name: Name of the S3 folder
+    :param object_name: Name of the S3 object 
+    :return: dict with status and message
+    """
+
+    for id in org_ids:
+
+        org_url = url + endpoint + str(id)
+        org_detail = libs.lambda_api_call(org_url)
+
+        # Try to upload the API response to S3 bucket/folder
+        try:
+            upload_org = libs.upload_s3_object(
+                json_string=json.dumps(org_detail), 
+                bucket_name=bucket_name, 
+                folder_name=org_folder, 
+                object_name=org_object + str(id).zfill(6) + '.json'
+            )   
+        except:
+            return {
+                'status_code': 400,
+                'body' : 'Erro ao realizar upload do arquivo'
+            }
+    # In case of sucess, return status_code 200
+    return {
+        'status_code': 200,
+        'body' : 'Upload realizado com sucesso'
+    }
 
 payload = {
     "bucket_name" : "uati-case-fgv",
-    "org_folder" : "emissions-fgv-org",
-    "org_object" : "emissions-fgv-org-",
-    "inv_folder" : "emissions-fgv-inv",
-    "inv_object" : "emissions-fgv-inv-",
+    "folder_name" : "emissions-fgv-org",
+    "object_name" : "emissions-fgv-org-",
     "orgs" : [1569, 990]
 }
+
 test = lambda_handler(event=payload, context=None)
 
 ##
