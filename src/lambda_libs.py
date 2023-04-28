@@ -4,7 +4,7 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 
-def lambda_api_call(path):
+def lambda_api_call(path, proxies):
 
     urllib3.disable_warnings()
 
@@ -18,7 +18,10 @@ def lambda_api_call(path):
 
     # GET request from the opened session
     try:
-        response = session.get(path, verify=False)
+        if proxies is None:
+            response = session.get(path, verify=False)
+        else:
+            response = session.get(path, verify=False, proxies=proxies)
     except:
         return False
 
@@ -26,7 +29,7 @@ def lambda_api_call(path):
     if response.status_code == 200:
         return response.json()
 
-def upload_s3_object(event, json_string):
+def upload_s3_object(json_string, aws_profile, bucket_name, folder_name, object_name):
     """Upload an object to an S3 bucket
 
     :param json_string: JSON to upload
@@ -35,11 +38,6 @@ def upload_s3_object(event, json_string):
     :param object_name: S3 object name
     :return: True if object was uploaded, else False
     """
-
-    aws_profile = event['aws_profile']
-    bucket_name = event['bucket_name']
-    folder_name = event['folder_name']
-    object_name = event['object_name']
 
     # Create a session using the specified configuration file
     if aws_profile is None:
