@@ -84,12 +84,14 @@ def process_orgs(org_ids, url, endpoint, bucket_name, folder_name, object_name):
         'body' : 'Upload realizado com sucesso'
     }
 
-# payload = {
-#     "bucket_name" : "uati-case-fgv",
-#     "folder_name" : "emissions-fgv-org",
-#     "object_name" : "emissions-fgv-org-",
-#     "orgs" : [1569, 990]
-# }
+payload = {
+    "aws_profile" : None,
+    "bucket_name" : "uati-case-fgv",
+    "folder_name" : "emissions-fgv-org",
+    "object_name" : "emissions-fgv-org-",
+    "proxies" : None,
+    "orgs" : [1569, 990]
+}
 
 # test = lambda_handler(event=payload, context=None)
 

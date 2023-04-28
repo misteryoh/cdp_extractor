@@ -26,7 +26,7 @@ def lambda_api_call(path):
     if response.status_code == 200:
         return response.json()
 
-def upload_s3_object(json_string, bucket_name, folder_name, object_name):
+def upload_s3_object(event, json_string):
     """Upload an object to an S3 bucket
 
     :param json_string: JSON to upload
@@ -36,8 +36,17 @@ def upload_s3_object(json_string, bucket_name, folder_name, object_name):
     :return: True if object was uploaded, else False
     """
 
+    aws_profile = event['aws_profile']
+    bucket_name = event['bucket_name']
+    folder_name = event['folder_name']
+    object_name = event['object_name']
+
     # Create a session using the specified configuration file
-    session = boto3.Session(profile_name='default')
+    if aws_profile is None:
+        session = boto3.Session()
+    else:
+        session = boto3.Session(profile_name=aws_profile)
+
     s3_client = session.client('s3')
 
     try:
