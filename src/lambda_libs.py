@@ -1,6 +1,7 @@
 import requests
 import urllib3
 import logging
+import time
 import boto3
 from botocore.exceptions import ClientError
 
@@ -57,3 +58,12 @@ def upload_s3_object(json_string, aws_profile, bucket_name, folder_name, object_
     except ClientError as e:
         logging.error(e)
         return False
+
+def tempo_de_execucao(funcao):
+    def wrapper(event, context):
+        inicio = time.time()
+        funcao(event, context)
+        fim = time.time()
+        tempo_execucao = (fim - inicio) / 60.0
+        print("Tempo de execução:", tempo_execucao, "minutos")
+    return wrapper

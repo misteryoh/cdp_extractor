@@ -2,6 +2,7 @@ from src import lambda_libs as libs
 import boto3
 import json
 
+@libs.tempo_de_execucao
 def lambda_handler(event, context):
 
     """ Main function to receive the payload and process the API calls
@@ -90,13 +91,20 @@ def process_orgs(org_ids, url, endpoint, event):
         'body' : 'Upload realizado com sucesso'
     }
 
+def process_inventories():
+
+    # || 
+
+    return True
+
+
 payload = {
     "aws_profile" : 'default',
     "bucket_name" : "uati-case-fgv",
     "folder_name" : "emissions-fgv-org",
     "object_name" : "emissions-fgv-org-",
     "proxies" : None,
-    "orgs" : [1569, 990]
+    "orgs" : None
 }
 
 test = lambda_handler(event=payload, context=None)
