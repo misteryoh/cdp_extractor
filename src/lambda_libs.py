@@ -5,7 +5,7 @@ import time
 import boto3
 from botocore.exceptions import ClientError
 
-def lambda_api_call(path, proxies):
+def api_call(path, proxies):
 
     urllib3.disable_warnings()
 
