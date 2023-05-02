@@ -1,4 +1,4 @@
-from src import lambda_libs as libs
+import lambda_libs as libs
 import boto3
 import json
 import functools
@@ -26,20 +26,29 @@ def lambda_handler(event, context):
     # Check if payload contains pre-defined 'orgs'
     if orgs_ids is None:
 
+        logging.info('Iniciando processamento sem orgs pre-definidas')
+
         fgv_orgs = libs.api_call(path=api_endpoint, proxies=proxies) # Receive API response
+
+        logging.info('Obtendo lista de orgs para processamento')
 
         org_ids = [org_id['_id'] for org_id in fgv_orgs] # Iterate through dict to make orgs_id list
 
+        logging.info('Iniciando processamento da lista de orgs')
         # Calls process_org to request Orgs details and upload to s3 bucket
         response = process_orgs(
             org_ids, 
             api_endpoint,
             event
         )
+
+        logging.info('Finalizando processamento da lista de orgs')
         
         return response
 
     else: # If payload have pre-defined 'orgs'
+
+        logging.info('Iniciando processamento com orgs pre-definidas')
 
         # Calls process_org to request Orgs details and upload to s3 bucket
         response = process_orgs(
@@ -47,6 +56,8 @@ def lambda_handler(event, context):
             api_endpoint,
             event
         )
+
+        logging.info('Finalizando processamento das orgs pre-definidas')
         
         return response
 
@@ -103,24 +114,16 @@ def api_call_upload_s3(org_ids, api_endpoint, event):
         'body' : 'Upload realizado com sucesso'
     }
 
-def process_inventories():
-
-    # || 
-
-    return True
-
-
 payload = {
-    "aws_profile" : 'default',
+    "aws_profile" : null,
     "bucket_name" : "uati-case-fgv",
     "folder_name" : "emissions-fgv-org",
     "object_name" : "emissions-fgv-org-",
-    "proxies" : None,
-    "orgs" : None
+    "proxies" : null,
+    "orgs" : [1569, 990]
 }
 
-test = lambda_handler(event=payload, context=None)
-
+test = handler.lambda_handler(event=payload, context=None)
 ##
 ## TODO
 ##
